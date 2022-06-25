@@ -5,7 +5,7 @@ import bpy
 from bpy.utils import time_from_frame, time_to_frame
 from mathutils import Matrix, Quaternion, Vector
 
-from .common import read_jmx_string, read_jmx_trasnform, read_little_int_unsigned
+from .common import read_jmx_string, read_jmx_trasnform, read_uint32
 
 __all__ = ("import_bsk",)
 
@@ -29,15 +29,11 @@ def import_bsk(context: bpy.types.Context, filepath):
     with open(filepath, "rb") as file:
         header = file.read(12)
         assert header == b"JMXVBSK 0101"
-        bone_count = read_little_int_unsigned(file)
-        for bone_index in range(bone_count):
-            if bone_index > 0:
-                related_bone_count = read_little_int_unsigned(file)
-                for _ in range(related_bone_count):
-                    related_bone_name = read_jmx_string(file)
 
+        bone_count = read_uint32(file)
+        for _ in range(bone_count):
             bone_type = int.from_bytes(file.read(1), "little", signed=False)
-            print("Bone Type: ", bone_type)
+            assert bone_type == 0
 
             bone_name = read_jmx_string(file)
             parent_bone_name = read_jmx_string(file)
@@ -46,26 +42,20 @@ def import_bsk(context: bpy.types.Context, filepath):
             new_bone = armature.edit_bones.new(bone_name)
 
             translation_to_parent, roation_to_parent = read_jmx_trasnform(file)
-            translation, rotation = read_jmx_trasnform(file)
-            unknown_translation, unknown_rotation = read_jmx_trasnform(file)
+            translation_to_world, rotation_to_world = read_jmx_trasnform(file)
+            translation_to_local, rotation_to_local = read_jmx_trasnform(file)
 
             translation_to_parent_map[bone_name] = translation_to_parent
 
-            print("\n")
-            print(f"BONE {bone_name}")
-            print(f"PARENT: {parent_bone_name}")
-            print(f"TRANSLATION TO PARENT: {translation_to_parent}")
-            print(f"TRANSLATION: {translation}")
-            print(f"UNKNOWN TRANSLATION: {unknown_translation}")
-            print("\n")
-
-            t = translation.xzy
+            t = translation_to_world.xzy
             t.y *= -1
             new_bone.translate(t)
 
-        unknown_ints = file.read(4 * 3)  # Unknwon integers
-        i, j, k = struct.unpack("<3I", unknown_ints)
-        # print("Unknown integers: ", i, j, k)
+            child_bone_count = read_uint32(file)
+            for _ in range(child_bone_count):
+                child_bone_name = read_jmx_string(file)
+
+        file.read(4 * 2)  # Skip unknown data
 
     editbone: bpy.types.EditBone
     # This is deferred so that all bones are created first
