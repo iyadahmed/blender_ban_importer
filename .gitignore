@@ -1,0 +1,9 @@
+env
+__pycache__
+*.zip
+.vscode
+*.blend*
+*.ban
+*.exe
+*.bsk
+*.BSK
