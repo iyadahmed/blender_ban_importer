@@ -39,8 +39,8 @@ def import_bsk(context: bpy.types.Context, filepath):
             bone_type = int.from_bytes(file.read(1), "little", signed=False)
             print("Bone Type: ", bone_type)
 
-            bone_name = read_jmx_string(file).decode()
-            parent_bone_name = read_jmx_string(file).decode()
+            bone_name = read_jmx_string(file)
+            parent_bone_name = read_jmx_string(file)
             bone_parent_map[bone_name] = parent_bone_name
 
             new_bone = armature.edit_bones.new(bone_name)

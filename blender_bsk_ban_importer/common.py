@@ -12,7 +12,7 @@ def read_little_string(file, num_chars) -> bytes:
 
 
 def read_jmx_string(file):
-    return read_little_string(file, read_little_int_unsigned(file))
+    return read_little_string(file, read_little_int_unsigned(file)).decode()
 
 
 def read_jmx_trasnform(file):
