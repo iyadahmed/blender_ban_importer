@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 import bpy
+from mathutils import Matrix
 
 from .common import read_jmx_string, read_jmx_trasnform, read_uint32
 
@@ -39,13 +40,11 @@ def import_bsk(context: bpy.types.Context, filepath):
             bone = bone_map[bone_name]
             bone.name = bone_name
 
-            translation_to_parent, roation_to_parent = read_jmx_trasnform(file)
+            translation_to_parent, rotation_to_parent = read_jmx_trasnform(file)
             translation_to_world, rotation_to_world = read_jmx_trasnform(file)
             translation_to_local, rotation_to_local = read_jmx_trasnform(file)
 
-            t = translation_to_world.xzy
-            t.y *= -1
-            bone.translate(t)
+            bone.translate(translation_to_world)
 
             if parent_bone_name != "":
                 parent = bone_map[parent_bone_name]
